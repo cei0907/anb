@@ -20,6 +20,7 @@ public sealed class GlobalUIManager : MonoBehaviour
     private Canvas canvas;
     private GameObject inventoryWindow;
     private GameObject characterWindow;
+    private Text sceneStatusLabel;
     private bool uiAllowedInCurrentScene = true;
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
@@ -136,6 +137,8 @@ public sealed class GlobalUIManager : MonoBehaviour
         {
             CloseAll();
         }
+
+        UpdateSceneStatusLabel(scene.name);
     }
 
     private void BuildUI()
@@ -159,6 +162,8 @@ public sealed class GlobalUIManager : MonoBehaviour
         CreateLabel(characterWindow.transform, "Character", 28, TextAnchor.MiddleLeft, new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(32f, -56f), new Vector2(-32f, -16f));
         CreateLabel(characterWindow.transform, "Level 1\nHP 100 / 100\nAttack 10\nDefense 5", 20, TextAnchor.UpperLeft, new Vector2(0f, 0f), new Vector2(1f, 1f), new Vector2(32f, 32f), new Vector2(-32f, -108f));
 
+        sceneStatusLabel = CreateLabel(canvas.transform, string.Empty, 18, TextAnchor.UpperLeft, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(24f, -112f), new Vector2(620f, -24f));
+
         CloseAll();
     }
 
@@ -180,9 +185,10 @@ public sealed class GlobalUIManager : MonoBehaviour
         return window;
     }
 
-    private static void CreateLabel(Transform parent, string text, int fontSize, TextAnchor alignment, Vector2 anchorMin, Vector2 anchorMax, Vector2 offsetMin, Vector2 offsetMax)
+    private static Text CreateLabel(Transform parent, string text, int fontSize, TextAnchor alignment, Vector2 anchorMin, Vector2 anchorMax, Vector2 offsetMin, Vector2 offsetMax)
     {
-        var labelObject = new GameObject(text.Split('\n')[0] + " Label", typeof(Text));
+        var labelName = string.IsNullOrEmpty(text) ? "Scene Status Label" : text.Split('\n')[0] + " Label";
+        var labelObject = new GameObject(labelName, typeof(Text));
         labelObject.transform.SetParent(parent, false);
 
         var rect = labelObject.GetComponent<RectTransform>();
@@ -197,6 +203,19 @@ public sealed class GlobalUIManager : MonoBehaviour
         label.fontSize = fontSize;
         label.alignment = alignment;
         label.color = Color.white;
+
+        return label;
+    }
+
+    private void UpdateSceneStatusLabel(string sceneName)
+    {
+        if (sceneStatusLabel == null)
+        {
+            return;
+        }
+
+        sceneStatusLabel.text = $"Scene: {sceneName}\n1 Town  2 Field  3 Dungeon\nI Inventory  C Character\nGlobal UI: {(uiAllowedInCurrentScene ? "Enabled" : "Disabled")}";
+        sceneStatusLabel.color = uiAllowedInCurrentScene ? new Color(0.7f, 1f, 0.75f, 1f) : new Color(1f, 0.62f, 0.62f, 1f);
     }
 
     private static void EnsureEventSystem()
